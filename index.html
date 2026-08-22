@@ -48,6 +48,7 @@
 
     <div class="categories">
         <button class="category-btn active" onclick="filterCategory('all', this)">Всі треки</button>
+        <button class="category-btn" onclick="filterCategory('modern', this)">Сучасні хіти 🔥</button>
         <button class="category-btn" onclick="filterCategory('ua-top', this)">UA Топ Хіти</button>
         <button class="category-btn" onclick="filterCategory('world', this)">Світові хіти</button>
         <button class="category-btn" onclick="filterCategory('classic', this)">UA Класика</button>
@@ -58,7 +59,7 @@
 </div>
 
 <script>
-    // Масив з усіма 4 JSON-файлами
+    // Наші 4 JSON-файли
     const jsonFiles = [
         'songs.json',
         'songs2.json',
@@ -84,7 +85,17 @@
                 
                 const rawText = await response.text();
                 const parsed = JSON.parse(rawText.trim());
-                return Array.isArray(parsed) ? parsed : [];
+                
+                // Для треків із четвертого файлу ставимо внутрішню відмітку фірмового фільтра
+                if (Array.isArray(parsed)) {
+                    return parsed.map(song => {
+                        if (fileName === 'songs4.json') {
+                            song.isModern = true;
+                        }
+                        return song;
+                    });
+                }
+                return [];
             } catch (error) {
                 console.error('Помилка читання файлу ' + fileName + ':', error);
                 return []; 
@@ -118,11 +129,19 @@
             const songArtistLower = song.a.toLowerCase();
             
             const matchesSearch = query === '' || songTitleLower.indexOf(query) !== -1 || songArtistLower.indexOf(query) !== -1;
-            const matchesCategory = currentCategory === 'all' || song.c === currentCategory;
+            
+            // Логіка фільтрації: modern показує тільки файл 4, all — все, інші — за мітками "c" з файлів 1-3
+            let matchesCategory = false;
+            if (currentCategory === 'all') {
+                matchesCategory = true;
+            } else if (currentCategory === 'modern') {
+                matchesCategory = song.isModern === true;
+            } else {
+                matchesCategory = song.c === currentCategory && !song.isModern;
+            }
 
             if (matchesSearch && matchesCategory) {
                 visibleCount++;
-                // Обмеження відображення до 500 перших результатів для швидкодії
                 if (visibleCount <= 500) {
                     listHTML += '<div class="song-card"><div class="song-title">' + song.t + '</div><div class="song-artist">' + song.a + '</div></div>';
                 }
