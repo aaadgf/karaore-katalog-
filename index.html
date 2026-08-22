@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MOSS KARAOKE RESTAURANT - Каталог</title>
+    <title>MOSS KARAOKE RESTAURANT</title>
     <style>
         :root {
             --bg-color: #0b0b0b;
@@ -19,38 +19,19 @@
         header h1 { font-size: 24px; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
         header p { color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
         
-        .search-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .search-box { width: 100%; padding: 15px; background-color: var(--card-bg); border: 1px solid #333; border-radius: 8px; color: var(--text-main); font-size: 16px; outline: none; transition: border-color 0.3s; }
+        .search-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .search-box { width: 100%; padding: 15px; background-color: var(--card-bg); border: 1px solid #333; border-radius: 8px; color: var(--text-main); font-size: 16px; outline: none; }
         .search-box:focus { border-color: var(--accent-gold); }
         
-        /* Стиль для випадаючого списку авторів */
-        .author-select {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--card-bg);
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: var(--text-main);
-            font-size: 15px;
-            outline: none;
-            cursor: pointer;
-            transition: border-color 0.3s;
-        }
+        .author-select { width: 100%; padding: 12px; background-color: var(--card-bg); border: 1px solid #333; border-radius: 8px; color: var(--text-main); font-size: 15px; outline: none; cursor: pointer; }
         .author-select:focus { border-color: var(--accent-gold); }
 
         .categories { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; width: 100%; padding-bottom: 8px; }
-        .categories::-webkit-scrollbar { height: 4px; }
-        .categories::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        .category-btn { background-color: var(--card-bg); color: var(--text-main); border: 1px solid #333; padding: 8px 16px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; transition: all 0.3s; -webkit-tap-highlight-color: transparent; }
-        .category-btn.active, .category-btn:hover { background-color: var(--accent-gold); color: #000; border-color: var(--accent-gold); font-weight: bold; }
+        .category-btn { background-color: var(--card-bg); color: var(--text-main); border: 1px solid #333; padding: 8px 16px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; transition: all 0.3s; }
+        .category-btn.active { background-color: var(--accent-gold); color: #000; border-color: var(--accent-gold); font-weight: bold; }
         
         .catalog { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-        .song-card { background-color: var(--card-bg); border: 1px solid #222; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+        .song-card { background-color: var(--card-bg); border: 1px solid #222; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; }
         .song-title { font-size: 17px; font-weight: 600; margin-bottom: 4px; color: var(--text-main); }
         .song-artist { font-size: 14px; color: var(--text-muted); }
         .no-results { text-align: center; color: var(--text-muted); margin-top: 30px; display: none; }
@@ -66,8 +47,7 @@
     </header>
 
     <div class="search-container">
-        <input type="text" id="searchInput" class="search-box" placeholder="Пошук пісні або артиста..." disabled>
-        <!-- Фільтр за авторами -->
+        <input type="text" id="searchInput" class="search-box" placeholder="Завантаження баз..." disabled>
         <select id="authorSelect" class="author-select" disabled>
             <option value="all">Всі автори (виконавці)</option>
         </select>
@@ -80,7 +60,7 @@
         <button class="category-btn" onclick="filterCategory('classic', this)">UA Класика</button>
     </div>
 
-    <div id="loadingStatus" class="loading">Завантаження бази пісень...</div>
+    <div id="loadingStatus" class="loading">Очікування відповіді сервера...</div>
     <div class="catalog" id="catalog"></div>
     <div class="no-results" id="noResults">Нічого не знайдено за вашим запитом</div>
 </div>
@@ -94,8 +74,12 @@
     const loadingStatus = document.getElementById('loadingStatus');
     const noResults = document.getElementById('noResults');
 
-    fetch('songs.json')
-        .then(response => response.json())
+    // Додаємо випадкове число, щоб браузер телефону не брав старий зламаний файл із пам'яті (кешу)
+    fetch('songs.json?v=' + Math.random())
+        .then(response => {
+            if (!response.ok) throw new Error('Помилка мережі');
+            return response.json();
+        })
         .then(data => {
             allSongs = data;
             loadingStatus.style.display = 'none';
@@ -105,17 +89,15 @@
             
             buildAuthorFilter();
             renderSongs();
-        })
-        .then(() => {
+
             searchInput.addEventListener('input', renderSongs);
             authorSelect.addEventListener('change', renderSongs);
         })
         .catch(err => {
-            loadingStatus.textContent = 'Помилка завантаження бази треків.';
+            loadingStatus.innerHTML = '<span style="color:#ff4444;">Помилка! Перевірте структуру файлу songs.json</span>';
             console.error(err);
         });
 
-    // Автоматичний збір авторів із файлу та сортування
     function buildAuthorFilter() {
         const authors = new Set();
         allSongs.forEach(song => {
@@ -134,21 +116,25 @@
 
     function renderSongs() {
         const query = searchInput.value.toLowerCase().trim();
-        const selectedAuthor = authorSelect.value;
+        const selectedAuthor = authorSelect.value.toLowerCase();
         catalogDiv.innerHTML = '';
         let visibleCount = 0;
 
         for (let i = 0; i < allSongs.length; i++) {
             const song = allSongs[i];
+            if (!song.t || !song.a) continue;
+
+            const songTitleLower = song.t.toLowerCase();
             const songArtistLower = song.a.toLowerCase();
             
-            const matchesSearch = song.t.toLowerCase().includes(query) || songArtistLower.includes(query);
+            const matchesSearch = query === '' || songTitleLower.includes(query) || songArtistLower.includes(query);
             const matchesCategory = currentCategory === 'all' || song.c === currentCategory;
             const matchesAuthor = selectedAuthor === 'all' || songArtistLower === selectedAuthor;
 
             if (matchesSearch && matchesCategory && matchesAuthor) {
                 visibleCount++;
                 
+                // Виводимо перші 200 для швидкої роботи телефону
                 if (visibleCount <= 200) {
                     const card = document.createElement('div');
                     card.className = 'song-card';
