@@ -18,20 +18,18 @@
         header { text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #222; }
         header h1 { font-size: 24px; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
         header p { color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
-        
         .search-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         .search-box { width: 100%; padding: 15px; background-color: var(--card-bg); border: 1px solid #333; border-radius: 8px; color: var(--text-main); font-size: 16px; outline: none; }
         .search-box:focus { border-color: var(--accent-gold); }
-
         .categories { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; width: 100%; padding-bottom: 8px; }
         .category-btn { background-color: var(--card-bg); color: var(--text-main); border: 1px solid #333; padding: 8px 16px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; transition: all 0.3s; }
         .category-btn.active { background-color: var(--accent-gold); color: #000; border-color: var(--accent-gold); font-weight: bold; }
-        
         .catalog { display: flex; flex-direction: column; gap: 12px; width: 100%; }
         .song-card { background-color: var(--card-bg); border: 1px solid #222; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; }
         .song-title { font-size: 17px; font-weight: 600; margin-bottom: 4px; color: var(--text-main); }
         .song-artist { font-size: 14px; color: var(--text-muted); }
         .no-results { text-align: center; color: var(--text-muted); margin-top: 30px; display: none; }
+        .status-msg { text-align: center; color: var(--accent-gold); margin-bottom: 15px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -42,8 +40,10 @@
         <p>KARAOKE RESTAURANT • КАТАЛОГ ПІСЕНЬ</p>
     </header>
 
+    <div id="statusMessage" class="status-msg">Завантаження бази треків з файлу...</div>
+
     <div class="search-container">
-        <input type="text" id="searchInput" class="search-box" placeholder="Пошук пісні або артиста...">
+        <input type="text" id="searchInput" class="search-box" placeholder="Пошук пісні або артиста..." disabled>
     </div>
 
     <div class="categories">
@@ -58,112 +58,90 @@
 </div>
 
 <script>
-    const allSongs = [
-      {"t": "Барабан", "a": "Артем Пивоваров & Klavdia Petrivna", "c": "ua-top"},
-      {"t": "Знайди мене", "a": "Klavdia Petrivna", "c": "ua-top"},
-      {"t": "Я тобі брехала", "a": "Klavdia Petrivna", "c": "ua-top"},
-      {"t": "Імператори", "a": "Klavdia Petrivna", "c": "ua-top"},
-      {"t": "Уже світає", "a": "Klavdia Petrivna", "c": "ua-top"},
-      {"t": "Театр", "a": "Klavdia Petrivna", "c": "ua-top"},
-      {"t": "Замовила", "a": "Klavdia Petrivna", "c": "ua-top"},
-      {"t": "Сніг", "a": "Klavdia Petrivna", "c": "ua-top"},
-      {"t": "Наробила лиха", "a": "Domiy", "c": "ua-top"},
-      {"t": "Тебе нема", "a": "Domiy & Osty", "c": "ua-top"},
-      {"t": "Ангели", "a": "Domiy", "c": "ua-top"},
-      {"t": "Повільно", "a": "ADAM", "c": "ua-top"},
-      {"t": "Лише для нас", "a": "ADAM", "c": "ua-top"},
-      {"t": "Танцюй мила", "a": "ADAM", "c": "ua-top"},
-      {"t": "Щасливі люди", "a": "ADAM", "c": "ua-top"},
-      {"t": "Я не такий", "a": "ADAM", "c": "ua-top"},
-      {"t": "Гарно так", "a": "CHEEV", "c": "ua-top"},
-      {"t": "Мрієшся ти", "a": "CHEEV", "c": "ua-top"},
-      {"t": "Пазли", "a": "CHEEV", "c": "ua-top"},
-      {"t": "Оберігати", "a": "CHEEV", "c": "ua-top"},
-      {"t": "Дежавю", "a": "Артем Пивоваров", "c": "ua-top"},
-      {"t": "Рандеву", "a": "Артем Пивоваров", "c": "ua-top"},
-      {"t": "Маніфест", "a": "Артем Пивоваров", "c": "ua-top"},
-      {"t": "Думи", "a": "Артем Пивоваров & Dorofeeva", "c": "ua-top"},
-      {"t": "Там у тополі", "a": "Артем Пивоваров & NK", "c": "ua-top"},
-      {"t": "Вартові", "a": "Артем Пивоваров", "c": "ua-top"},
-      {"t": "Очі", "a": "Артем Пивоваров & Quest Pistols", "c": "ua-top"},
-      {"t": "До весни", "a": "Chico & Qatos", "c": "ua-top"},
-      {"t": "Попелом", "a": "YAKTAK", "c": "ua-top"},
-      {"t": "Уночі", "a": "YAKTAK", "c": "ua-top"},
-      {"t": "Порічка", "a": "YAKTAK feat. KOLA", "c": "ua-top"},
-      {"t": "Не минай", "a": "YAKTAK", "c": "ua-top"},
-      {"t": "Чекаю вдома", "a": "YAKTAK", "c": "ua-top"},
-      {"t": "Нижча зростом", "a": "YAKTAK", "c": "ua-top"},
-      {"t": "Силует", "a": "SadSvit", "c": "ua-top"},
-      {"t": "Касета", "a": "SadSvit", "c": "ua-top"},
-      {"t": "Квіти", "a": "SadSvit & Схожа", "c": "ua-top"},
-      {"t": "Провела екскурсію", "a": "Parfeniuk", "c": "ua-top"},
-      {"t": "Відриваючись", "a": "Parfeniuk", "c": "ua-top"},
-      {"t": "Долоні", "a": "Parfeniuk", "c": "ua-top"},
-      {"t": "Мала", "a": "Parfeniuk", "c": "ua-top"},
-      {"t": "Асфальт", "a": "Schmalgauzen", "c": "ua-top"},
-      {"t": "Твої губи", "a": "Schmalgauzen", "c": "ua-top"},
-      {"t": "Вечорниці", "a": "100ЛИЦЯ", "c": "ua-top"},
-      {"t": "Троянди", "a": "100ЛИЦЯ", "c": "ua-top"},
-      {"t": "Педсовет", "a": "100ЛИЦЯ", "c": "ua-top"},
-      {"t": "Зорі", "a": "100ЛИЦЯ", "c": "ua-top"},
-      {"t": "Попав в капкан", "a": "100ЛИЦЯ", "c": "ua-top"},
-      {"t": "Біля серця", "a": "KOLA", "c": "ua-top"},
-      {"t": "Чи разом?", "a": "KOLA", "c": "ua-top"},
-      {"t": "Цінувати життя", "a": "KOLA", "c": "ua-top"},
-      {"t": "Під крилом", "a": "KOLA", "c": "ua-top"},
-      {"t": "Кохаю, але не зовсім", "a": "DOROFEEVA", "c": "ua-top"},
-      {"t": "Хартбіт", "a": "DOROFEEVA", "c": "ua-top"},
-      {"t": "Щоб не було", "a": "DOROFEEVA", "c": "ua-top"},
-      {"t": "Насамоті", "a": "DOROFEEVA", "c": "ua-top"},
-      {"t": "А шо?", "a": "MONATIK", "c": "ua-top"},
-      {"t": "Кохаю", "a": "MONATIK", "c": "ua-top"},
-      {"t": "Кружить", "a": "MONATIK", "c": "ua-top"},
-      {"t": "Кожний раз", "a": "MONATIK", "c": "ua-top"},
-      {"t": "Очі заплющу", "a": "Нікіта Кісельов", "c": "ua-top"},
-      {"t": "Романтика", "a": "Нікіта Кісельов", "c": "ua-top"},
-      {"t": "Буревіями", "a": "SHUMEI & Злата Огнєвіч", "c": "ua-top"},
-      {"t": "Мріяла", "a": "SHUMEI", "c": "ua-top"},
-      {"t": "Таблетка", "a": "Анна Трінчер", "c": "ua-top"},
-      {"t": "Колоски", "a": "Анна Трінчер", "c": "ua-top"},
-      {"t": "Охороно, отмєна", "a": "Jerry Heil", "c": "ua-top"},
-      {"t": "Гуси", "a": "WELLBOY", "c": "ua-top"},
-      {"t": "Вишні", "a": "WELLBOY", "c": "ua-top"},
-      {"t": "Стефанія", "a": "Kalush Orchestra", "c": "ua-top"},
-      {"t": "Додому", "a": "Kalush feat. Skofka", "c": "ua-top"},
-      {"t": "Плакала", "a": "KAZKA", "c": "ua-top"},
-      {"t": "Закоханий", "a": "Макс Барських", "c": "ua-top"},
-      {"t": "Стерти Чат", "a": "Max Barskih", "c": "ua-top"},
-      {"t": "Маргарита", "a": "Анна Трінчер", "c": "ua-top"},
-      {"t": "Додай гучності", "a": "Jerry Heil", "c": "ua-top"},
-      {"t": "На беззвучний", "a": "YAKTAK & KOLA", "c": "ua-top"},
-      {"t": "Просто кохаю", "a": "DANTES", "c": "ua-top"},
-      {"t": "Ти не забувай", "a": "Володимир DANTES", "c": "ua-top"},
-      {"t": "Вихідний", "a": "TVORCHI", "c": "ua-top"},
-      {"t": "Вівтар", "a": "Нікіта Кісельов", "c": "ua-top"},
-      {"t": "Крила лелеки", "a": "Нікіта Кісельов", "c": "ua-top"},
-      {"t": "Музико", "a": "Alena Omargalieva", "c": "ua-top"},
-      {"t": "Фанат", "a": "Alena Omargalieva", "c": "ua-top"},
-      {"t": "Дім", "a": "ZLATA OGNEVICH & MAKO", "c": "ua-top"},
-      {"t": "Де немає людей", "a": "Святослав Вакарчук & Shumei", "c": "ua-top"},
-      {"t": "Бонсуа", "a": "SHUMEI", "c": "ua-top"},
-      {"t": "Японія", "a": "DOROFEEVA", "c": "ua-top"},
-      {"t": "Питань нема", "a": "Victoria Niro", "c": "ua-top"},
-      {"t": "Горлиці", "a": "SKYLERR", "c": "ua-top"},
-      {"t": "Лунає", "a": "Оля Полякова", "c": "ua-top"},
-      {"t": "Дистанція", "a": "МУАЯД", "c": "ua-top"},
-      {"t": "Коло тебе", "a": "Василь Білоус", "c": "ua-top"},
-      {"t": "Жити на повну", "a": "GROSU", "c": "ua-top"},
-      {"t": "Привіт мій любий", "a": "Gensouls", "c": "ua-top"},
-      {"t": "Така Молода", "a": "DIBROVA", "c": "ua-top"},
-      {"t": "Шекспір", "a": "Віталій Козловський", "c": "ua-top"},
-      {"t": "БОРЩ", "a": "PROBASS ∆ HARDI", "c": "ua-top"},
-      {"t": "Просто би хотіла", "a": "Kristonko", "c": "ua-top"},
-      {"t": "Ти з України", "a": "Олександр Пономарьов", "c": "ua-top"},
-      {"t": "Очі", "a": "Kalush Orchestra x melos", "c": "ua-top"},
-      {"t": "Flowers", "a": "Miley Cyrus", "c": "world"},
-      {"t": "Espresso", "a": "Sabrina Carpenter", "c": "world"},
-      {"t": "Please Please Please", "a": "Sabrina Carpenter", "c": "world"},
-      {"t": "Cruel Summer", "a": "Taylor Swift", "c": "world"},
-      {"t": "Fortnight", "a": "Taylor Swift ft. Post Malone", "c": "world"},
-      {"t": "Blank Space", "a": "Taylor Swift", "c": "world"},
-      {"t": "Blinding Lights", "a": "The Weeknd", "c": "world"},
+    let allSongs = [];
+    let currentCategory = 'all';
+    
+    const catalogDiv = document.getElementById('catalog');
+    const searchInput = document.getElementById('searchInput');
+    const noResults = document.getElementById('noResults');
+    const statusMessage = document.getElementById('statusMessage');
+
+    // Безпечне завантаження зовнішнього файлу з обходом кешу та захистом від помилок CORS
+    async function loadSongs() {
+        const fileNames = ['songs.json', './songs.json'];
+        
+        for (let name of fileNames) {
+            try {
+                // Додаємо випадковий маркер часу, щоб змусити примусово прочитати оновлений файл
+                const response = await fetch(`${name}?nocache=${new Date().getTime()}`, {
+                    headers: { 'Cache-Control': 'no-cache' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        allSongs = data;
+                        statusMessage.style.display = 'none';
+                        searchInput.disabled = false;
+                        searchInput.placeholder = `Пошук серед ${allSongs.length} пісень...`;
+                        renderSongs();
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.log(`Спроба завантаження через ${name} не вдалася, пробуємо альтернативу...`);
+            }
+        }
+        
+        // Якщо файли не зчиталися, виводимо зрозумілу помилку замість пустки
+        statusMessage.style.color = '#ff4444';
+        statusMessage.innerHTML = 'Не вдалося прочитати файл songs.json. Перевірте, чи завантажений він у той самий репозиторій GitHub.';
+    }
+
+    function renderSongs() {
+        const query = searchInput.value.toLowerCase().trim();
+        let htmlHTML = '';
+        let visibleCount = 0;
+
+        for (let i = 0; i < allSongs.length; i++) {
+            const song = allSongs[i];
+            
+            // Захист на випадок, якщо якийсь рядок у файлі заповнений неправильно
+            if (!song || !song.t || !song.a) continue;
+
+            const songTitleLower = song.t.toLowerCase();
+            const songArtistLower = song.a.toLowerCase();
+            
+            const matchesSearch = query === '' || songTitleLower.indexOf(query) !== -1 || songArtistLower.indexOf(query) !== -1;
+            const matchesCategory = currentCategory === 'all' || song.c === currentCategory;
+
+            if (matchesSearch && matchesCategory) {
+                visibleCount++;
+                if (visibleCount <= 200) {
+                    htmlHTML += `<div class="song-card"><div class="song-title">${song.t}</div><div class="song-artist">${song.a}</div></div>`;
+                }
+            }
+        }
+
+        catalogDiv.innerHTML = htmlHTML;
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    function filterCategory(category, buttonElement) {
+        currentCategory = category;
+        const buttons = document.getElementsByClassName('category-btn');
+        for(let i=0; i<buttons.length; i++) {
+            buttons[i].classList.remove('active');
+        }
+        if (buttonElement) buttonElement.classList.add('active');
+        renderSongs();
+    }
+
+    searchInput.addEventListener('input', renderSongs);
+    
+    // Запуск процесу зчитування файлу
+    loadSongs();
+</script>
+
+</body>
+</html>
