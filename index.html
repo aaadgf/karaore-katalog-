@@ -58,6 +58,7 @@
 </div>
 
 <script>
+    // Масив з усіма 4 JSON-файлами
     const jsonFiles = [
         'songs.json',
         'songs2.json',
@@ -80,6 +81,7 @@
                     headers: { 'Cache-Control': 'no-cache' }
                 });
                 if (!response.ok) return [];
+                
                 const rawText = await response.text();
                 const parsed = JSON.parse(rawText.trim());
                 return Array.isArray(parsed) ? parsed : [];
@@ -99,7 +101,7 @@
             renderSongs();
         } else {
             statusMessage.style.color = '#ff4444';
-            statusMessage.innerHTML = 'Помилка: не вдалося завантажити треки. Перевірте .json файли';
+            statusMessage.innerHTML = 'Помилка: не вдалося завантажити треки. Перевірте JSON файли.';
         }
     }
 
@@ -120,6 +122,7 @@
 
             if (matchesSearch && matchesCategory) {
                 visibleCount++;
+                // Обмеження відображення до 500 перших результатів для швидкодії
                 if (visibleCount <= 500) {
                     listHTML += '<div class="song-card"><div class="song-title">' + song.t + '</div><div class="song-artist">' + song.a + '</div></div>';
                 }
