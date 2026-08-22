@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Bar - Каталог Караоке</title>
+    <style>
+        :root {
+            --bg-color: #0b0b0b;
+            --card-bg: #141414;
+            --accent-gold: #c5a059;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #222;
+        }
+
+        header h1 {
+            font-size: 26px;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--card-bg);
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 16px;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .categories {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            overflow-x: auto;
+            width: 100%;
+            padding-bottom: 8px;
+        }
+
+        .categories::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .categories::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 10px;
+        }
+
+        .category-btn {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .category-btn.active, .category-btn:hover {
+            background-color: var(--accent-gold);
+            color: #000;
+            border-color: var(--accent-gold);
+            font-weight: bold;
+        }
+
+        .catalog {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .song-card {
+            background-color: var(--card-bg);
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .song-card:active {
+            transform: scale(0.98);
+        }
+
+        .song-info {
+            flex-grow: 1;
+        }
+
+        .song-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+
+        .song-artist {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .no-results {
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 30px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Black Bar</h1>
+        <p>КАТАЛОГ ТОП-ПІСЕНЬ Караоке</p>
+    </header>
+
+    <input type="text" id="searchInput" class="search-box" placeholder="Пошук пісні або артиста...">
+
+    <div class="categories">
+        <button class="category-btn active" onclick="filterCategory('all')">Всі треки</button>
+        <button class="category-btn" onclick="filterCategory('ua-pop')">UA Поп</button>
+        <button class="category-btn" onclick="filterCategory('world')">Світові хіти</button>
+        <button class="category-btn" onclick="filterCategory('rock')">Рок / Драйв</button>
+        <button class="category-btn" onclick="filterCategory('classic')">Класика</button>
+    </div>
+
+    <div class="catalog" id="catalog">
+        
+        <!-- UA POP -->
+        <div class="song-card" data-category="ua-pop">
+            <div class="song-info">
+                <div class="song-title">Вечорниці</div>
+                <div class="song-artist">100ЛИЦЯ</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="ua-pop">
+            <div class="song-info">
+                <div class="song-title">Троянди</div>
+                <div class="song-artist">100ЛИЦЯ</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="ua-pop">
+            <div class="song-info">
+                <div class="song-title">Лише для нас</div>
+                <div class="song-artist">ADAM</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="ua-pop">
+            <div class="song-info">
+                <div class="song-title">Повільно</div>
+                <div class="song-artist">ADAM</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="ua-pop">
+            <div class="song-info">
+                <div class="song-title">Метелики</div>
+                <div class="song-artist">Alena Omargalieva</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="ua-pop">
+            <div class="song-info">
+                <div class="song-title">Коли тебе немає</div>
+                <div class="song-artist">Alena Omargalieva</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="ua-pop">
+            <div class="song-info">
+                <div class="song-title">Хочеш</div>
+                <div class="song-artist">Alena Omargalieva</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="ua-pop">
+            <div class="song-info">
+                <div class="song-title">Гарно Так</div>
+                <div class="song-artist">CHEEV</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="ua-pop">
+            <div class="song-info">
+                <div class="song-title">Мрієшся Ти</div>
+                <div class="song-artist">CHEEV</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="ua-pop">
+            <div class="song-info">
+                <div class="song-title">Таблетка</div>
+                <div class="song-artist">Анна Трінчер</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="ua-pop">
+            <div class="song-info">
+                <div class="song-title">Покохала</div>
+                <div class="song-artist">KAZKA</div>
+            </div>
+        </div>
+
+        <!-- WORLD HITS -->
+        <div class="song-card" data-category="world">
+            <div class="song-info">
+                <div class="song-title">Flowers</div>
+                <div class="song-artist">Miley Cyrus</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="world">
+            <div class="song-info">
+                <div class="song-title">Blinding Lights</div>
+                <div class="song-artist">The Weeknd</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="world">
+            <div class="song-info">
+                <div class="song-title">Shape of You</div>
+                <div class="song-artist">Ed Sheeran</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="world">
+            <div class="song-info">
+                <div class="song-title">Rolling in the Deep</div>
+                <div class="song-artist">Adele</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="world">
+            <div class="song-info">
+                <div class="song-title">Bad Guy</div>
+                <div class="song-artist">Billie Eilish</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="world">
+            <div class="song-info">
+                <div class="song-title">Believer</div>
+                <div class="song-artist">Imagine Dragons</div>
+            </div>
+        </div>
+
+        <!-- ROCK -->
+        <div class="song-card" data-category="rock">
+            <div class="song-info">
+                <div class="song-title">Без бою</div>
+                <div class="song-artist">Океан Ельзи</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="rock">
+            <div class="song-info">
+                <div class="song-title">Старі фотографії</div>
+                <div class="song-artist">Скрябін</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="rock">
+            <div class="song-info">
+                <div class="song-title">Зранку до ночі</div>
+                <div class="song-artist">Друга Ріка</div>
+            </div>
+        </div>
+        <div class="song-card" data-category="rock">
+            <div class="song-info">
+                <div class="song-title">It's My Life</div>
+                <div class="song-artist">Bon Jovi</div>
+            </div>
+        </div>
+
+        <!-- CLASSIC -->
+        <div class="song-card" data-category="classic">
+            <div class="song-info">
+                <div class="song-title">Червона Рута</div>
+                <div class="song-artist">Володимир Івасюк</div>
+            </div>
+        </div>
