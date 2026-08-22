@@ -66,47 +66,46 @@
     const noResults = document.getElementById('noResults');
     const statusMessage = document.getElementById('statusMessage');
 
-    // Безпечне завантаження зовнішнього файлу з обходом кешу та захистом від помилок CORS
     async function loadSongs() {
-        const fileNames = ['songs.json', './songs.json'];
-        
-        for (let name of fileNames) {
-            try {
-                // Додаємо випадковий маркер часу, щоб змусити примусово прочитати оновлений файл
-                const response = await fetch(`${name}?nocache=${new Date().getTime()}`, {
-                    headers: { 'Cache-Control': 'no-cache' }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (Array.isArray(data) && data.length > 0) {
-                        allSongs = data;
-                        statusMessage.style.display = 'none';
-                        searchInput.disabled = false;
-                        searchInput.placeholder = `Пошук серед ${allSongs.length} пісень...`;
-                        renderSongs();
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.log(`Спроба завантаження через ${name} не вдалася, пробуємо альтернативу...`);
+        try {
+            // Додаємо випадковий параметр, щоб браузер не брав старий файл із пам'яті
+            const response = await fetch('songs.json?v=' + Date.now(), {
+                headers: { 'Cache-Control': 'no-cache' }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Файл songs.json не знайдено на сервері');
             }
+            
+            const rawText = await response.text();
+            
+            // Захист від прихованих знаків бом чи пробілів на початку файлу JSON
+            const cleanText = rawText.trim(); 
+            allSongs = JSON.parse(cleanText);
+            
+            if (Array.isArray(allSongs) && allSongs.length > 0) {
+                statusMessage.style.display = 'none';
+                searchInput.disabled = false;
+                searchInput.placeholder = 'Пошук серед ' + allSongs.length + ' пісень...';
+                renderSongs();
+            } else {
+                throw new Error('Файл порожній або має неправильний формат масиву');
+            }
+        } catch (error) {
+            console.error(error);
+            statusMessage.style.color = '#ff4444';
+            statusMessage.innerHTML = 'Помилка: ' + error.message + '. Перевірте файл songs.json та його назву.';
         }
-        
-        // Якщо файли не зчиталися, виводимо зрозумілу помилку замість пустки
-        statusMessage.style.color = '#ff4444';
-        statusMessage.innerHTML = 'Не вдалося прочитати файл songs.json. Перевірте, чи завантажений він у той самий репозиторій GitHub.';
     }
 
     function renderSongs() {
         const query = searchInput.value.toLowerCase().trim();
-        let htmlHTML = '';
+        let listHTML = '';
         let visibleCount = 0;
 
         for (let i = 0; i < allSongs.length; i++) {
             const song = allSongs[i];
             
-            // Захист на випадок, якщо якийсь рядок у файлі заповнений неправильно
             if (!song || !song.t || !song.a) continue;
 
             const songTitleLower = song.t.toLowerCase();
@@ -118,19 +117,19 @@
             if (matchesSearch && matchesCategory) {
                 visibleCount++;
                 if (visibleCount <= 200) {
-                    htmlHTML += `<div class="song-card"><div class="song-title">${song.t}</div><div class="song-artist">${song.a}</div></div>`;
+                    listHTML += '<div class="song-card"><div class="song-title">' + song.t + '</div><div class="song-artist">' + song.a + '</div></div>';
                 }
             }
         }
 
-        catalogDiv.innerHTML = htmlHTML;
+        catalogDiv.innerHTML = listHTML;
         noResults.style.display = visibleCount === 0 ? 'block' : 'none';
     }
 
     function filterCategory(category, buttonElement) {
         currentCategory = category;
         const buttons = document.getElementsByClassName('category-btn');
-        for(let i=0; i<buttons.length; i++) {
+        for(let i = 0; i < buttons.length; i++) {
             buttons[i].classList.remove('active');
         }
         if (buttonElement) buttonElement.classList.add('active');
@@ -138,8 +137,6 @@
     }
 
     searchInput.addEventListener('input', renderSongs);
-    
-    // Запуск процесу зчитування файлу
     loadSongs();
 </script>
 
