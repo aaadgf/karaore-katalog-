@@ -58,11 +58,11 @@
 </div>
 
 <script>
-    // Спиоск усіх ваших JSON-файлів. Сюди можна дописувати нові назви через кому
     const jsonFiles = [
         'songs.json',
         'songs2.json',
-        'songs3.json'
+        'songs3.json',
+        'songs4.json'
     ];
 
     let allSongs = [];
@@ -79,8 +79,7 @@
                 const response = await fetch(fileName + '?v=' + Date.now(), {
                     headers: { 'Cache-Control': 'no-cache' }
                 });
-                if (!response.ok) return []; // Якщо якогось файлу немає, просто пропускаємо
-                
+                if (!response.ok) return [];
                 const rawText = await response.text();
                 const parsed = JSON.parse(rawText.trim());
                 return Array.isArray(parsed) ? parsed : [];
@@ -90,10 +89,7 @@
             }
         });
 
-        // Завантажуємо всі файли одночасно
         const results = await Promise.all(fetchPromises);
-        
-        // Об'єднуємо всі масиви в один загальний список
         allSongs = results.flat();
 
         if (allSongs.length > 0) {
@@ -103,7 +99,7 @@
             renderSongs();
         } else {
             statusMessage.style.color = '#ff4444';
-            statusMessage.innerHTML = 'Помилка: не вдалося завантажити жодного треку. Перевірте файли .json';
+            statusMessage.innerHTML = 'Помилка: не вдалося завантажити треки. Перевірте .json файли';
         }
     }
 
@@ -114,7 +110,6 @@
 
         for (let i = 0; i < allSongs.length; i++) {
             const song = allSongs[i];
-            
             if (!song || !song.t || !song.a || !song.c) continue;
 
             const songTitleLower = song.t.toLowerCase();
@@ -125,7 +120,6 @@
 
             if (matchesSearch && matchesCategory) {
                 visibleCount++;
-                // Обмежуємо відтворення на екрані до 500 перших збігів за раз для стабільності телефонів
                 if (visibleCount <= 500) {
                     listHTML += '<div class="song-card"><div class="song-title">' + song.t + '</div><div class="song-artist">' + song.a + '</div></div>';
                 }
@@ -147,8 +141,6 @@
     }
 
     searchInput.addEventListener('input', renderSongs);
-    
-    // Старт паралельного завантаження
     loadAllFiles();
 </script>
 
