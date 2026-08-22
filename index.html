@@ -47,7 +47,6 @@
         <button class="category-btn active" onclick="filterCategory('all', this)">Всі треки</button>
         <button class="category-btn" onclick="filterCategory('ua-top', this)">UA Топ Хіти</button>
         <button class="category-btn" onclick="filterCategory('world', this)">Світові хіти</button>
-        <button class="category-btn" onclick="filterCategory('rock', this)">Рок / Драйв</button>
         <button class="category-btn" onclick="filterCategory('classic', this)">UA Класика</button>
     </div>
 
@@ -64,7 +63,7 @@
     const loadingStatus = document.getElementById('loadingStatus');
     const noResults = document.getElementById('noResults');
 
-    // Завантаження величезної бази з окремого файлу
+    // Завантаження бази з окремого файлу json
     fetch('songs.json')
         .then(response => response.json())
         .then(data => {
@@ -85,7 +84,6 @@
         catalogDiv.innerHTML = '';
         let visibleCount = 0;
 
-        // Оптимізований швидкий цикл пошуку
         for (let i = 0; i < allSongs.length; i++) {
             const song = allSongs[i];
             const matchesSearch = song.t.toLowerCase().includes(query) || song.a.toLowerCase().includes(query);
@@ -94,7 +92,7 @@
             if (matchesSearch && matchesCategory) {
                 visibleCount++;
                 
-                // Обмежуємо одночасний вивід до 200 треків для супер-швидкої роботи екрану
+                // Обмежуємо одночасне завантаження на екран до 200 карток для плавної роботи пошуку
                 if (visibleCount <= 200) {
                     const card = document.createElement('div');
                     card.className = 'song-card';
