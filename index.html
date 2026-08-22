@@ -18,13 +18,37 @@
         header { text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #222; }
         header h1 { font-size: 24px; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
         header p { color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
-        .search-box { width: 100%; padding: 15px; background-color: var(--card-bg); border: 1px solid #333; border-radius: 8px; color: var(--text-main); font-size: 16px; margin-bottom: 20px; outline: none; transition: border-color 0.3s; }
+        
+        .search-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-box { width: 100%; padding: 15px; background-color: var(--card-bg); border: 1px solid #333; border-radius: 8px; color: var(--text-main); font-size: 16px; outline: none; transition: border-color 0.3s; }
         .search-box:focus { border-color: var(--accent-gold); }
+        
+        /* Стиль для випадаючого списку авторів */
+        .author-select {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--card-bg);
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 15px;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        .author-select:focus { border-color: var(--accent-gold); }
+
         .categories { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; width: 100%; padding-bottom: 8px; }
         .categories::-webkit-scrollbar { height: 4px; }
         .categories::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
         .category-btn { background-color: var(--card-bg); color: var(--text-main); border: 1px solid #333; padding: 8px 16px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; transition: all 0.3s; -webkit-tap-highlight-color: transparent; }
         .category-btn.active, .category-btn:hover { background-color: var(--accent-gold); color: #000; border-color: var(--accent-gold); font-weight: bold; }
+        
         .catalog { display: flex; flex-direction: column; gap: 12px; width: 100%; }
         .song-card { background-color: var(--card-bg); border: 1px solid #222; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
         .song-title { font-size: 17px; font-weight: 600; margin-bottom: 4px; color: var(--text-main); }
@@ -41,7 +65,13 @@
         <p>KARAOKE RESTAURANT • КАТАЛОГ ПІСЕНЬ</p>
     </header>
 
-    <input type="text" id="searchInput" class="search-box" placeholder="Пошук пісні або артиста..." disabled>
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-box" placeholder="Пошук пісні або артиста..." disabled>
+        <!-- Фільтр за авторами -->
+        <select id="authorSelect" class="author-select" disabled>
+            <option value="all">Всі автори (виконавці)</option>
+        </select>
+    </div>
 
     <div class="categories">
         <button class="category-btn active" onclick="filterCategory('all', this)">Всі треки</button>
@@ -60,39 +90,65 @@
     let currentCategory = 'all';
     const catalogDiv = document.getElementById('catalog');
     const searchInput = document.getElementById('searchInput');
+    const authorSelect = document.getElementById('authorSelect');
     const loadingStatus = document.getElementById('loadingStatus');
     const noResults = document.getElementById('noResults');
 
-    // Завантаження бази з окремого файлу json
     fetch('songs.json')
         .then(response => response.json())
         .then(data => {
             allSongs = data;
             loadingStatus.style.display = 'none';
             searchInput.disabled = false;
+            authorSelect.disabled = false;
             searchInput.placeholder = `Пошук серед ${allSongs.length} пісень...`;
+            
+            buildAuthorFilter();
             renderSongs();
         })
-        .then(() => searchInput.addEventListener('input', renderSongs))
+        .then(() => {
+            searchInput.addEventListener('input', renderSongs);
+            authorSelect.addEventListener('change', renderSongs);
+        })
         .catch(err => {
             loadingStatus.textContent = 'Помилка завантаження бази треків.';
             console.error(err);
         });
 
+    // Автоматичний збір авторів із файлу та сортування
+    function buildAuthorFilter() {
+        const authors = new Set();
+        allSongs.forEach(song => {
+            if(song.a) authors.add(song.a.trim());
+        });
+        
+        const sortedAuthors = Array.from(authors).sort((a, b) => a.localeCompare(b, 'uk'));
+        
+        sortedAuthors.forEach(author => {
+            const option = document.createElement('option');
+            option.value = author.toLowerCase();
+            option.textContent = author;
+            authorSelect.appendChild(option);
+        });
+    }
+
     function renderSongs() {
         const query = searchInput.value.toLowerCase().trim();
+        const selectedAuthor = authorSelect.value;
         catalogDiv.innerHTML = '';
         let visibleCount = 0;
 
         for (let i = 0; i < allSongs.length; i++) {
             const song = allSongs[i];
-            const matchesSearch = song.t.toLowerCase().includes(query) || song.a.toLowerCase().includes(query);
+            const songArtistLower = song.a.toLowerCase();
+            
+            const matchesSearch = song.t.toLowerCase().includes(query) || songArtistLower.includes(query);
             const matchesCategory = currentCategory === 'all' || song.c === currentCategory;
+            const matchesAuthor = selectedAuthor === 'all' || songArtistLower === selectedAuthor;
 
-            if (matchesSearch && matchesCategory) {
+            if (matchesSearch && matchesCategory && matchesAuthor) {
                 visibleCount++;
                 
-                // Обмежуємо одночасне завантаження на екран до 200 карток для плавної роботи пошуку
                 if (visibleCount <= 200) {
                     const card = document.createElement('div');
                     card.className = 'song-card';
